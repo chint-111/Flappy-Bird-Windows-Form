@@ -12,49 +12,95 @@ namespace Flappy_Bird_Windows_Form
 {
     public partial class Form1 : Form
     {
-        int pipeSpeed = 6;
-        int gravity = 10;
-        int score = 0;
-        int pipeGap = 150; // Default gap size for pipes
+        private int pipeSpeed = 6;
+        private int gravity = 10;
+        private int score = 0;
+        private int pipeGap = 150;
 
         public string GameMode { get; private set; } // Game mode passed from MainMenu
+        public string EnvironmentStyle { get; private set; } // Environment style passed from MainMenu
+        private Button btnRestart; // Restart button
 
-        private Button btnRestart; // Declare the restart button
-
-        public Form1(string mode)
+        public Form1(string mode, string environment)
         {
             InitializeComponent();
             GameMode = mode;
+            EnvironmentStyle = environment;
+
             SetGameMode(GameMode);
-            InitializeRestartButton(); // Initialize the restart button
+            SetEnvironmentStyle(EnvironmentStyle);
+            InitializeRestartButton();
+            // Attach KeyDown and KeyUp event handlers
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.gamekeyisdown);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.gamekeyisup);
+
+            // Enable KeyPreview to handle key events even when other controls are focused
+            this.KeyPreview = true;
+
         }
 
+        private void SetEnvironmentStyle(string style)
+        {
+            switch (style)
+            {
+                case "Day":
+                    this.BackColor = Color.CornflowerBlue;
+                    break;
+                case "Night":
+                    this.BackColor = Color.DarkSlateBlue;
+                    break;
+                case "Space":
+                    this.BackColor = Color.Black;
+                    break;
+                default:
+                    this.BackColor = Color.CornflowerBlue;
+                    break;
+            }
+        }
+        private void gamekeyisdown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Space) // Example: Make the bird jump when pressing Space
+            {
+                gravity = -10; // Adjust gravity or upward movement logic as needed.
+            }
+        }
+
+        private void gamekeyisup(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Space) // Example: Restore gravity when releasing Space
+            {
+                gravity = 10; // Adjust gravity or downward movement logic as needed.
+            }
+        }
         private void InitializeRestartButton()
         {
-            this.btnRestart = new System.Windows.Forms.Button(); // Initialize the button
-            this.SuspendLayout();
+            btnRestart = new Button
+            {
+                Location = new Point(350, 300),
+                Name = "btnRestart",
+                Size = new Size(100, 50),
+                Text = "Restart",
+                Visible = false
+            };
+            btnRestart.Click += BtnRestart_Click;
+            this.Controls.Add(btnRestart);
+        }
 
-            // 
-            // btnRestart
-            // 
-            this.btnRestart.Location = new System.Drawing.Point(350, 300); // Example position
-            this.btnRestart.Name = "btnRestart";
-            this.btnRestart.Size = new System.Drawing.Size(100, 50); // Size of the button
-            this.btnRestart.TabIndex = 0;
-            this.btnRestart.Text = "Restart";
-            this.btnRestart.UseVisualStyleBackColor = true;
-            this.btnRestart.Visible = false; // Initially hidden
-            this.btnRestart.Click += new System.EventHandler(this.btnRestart_Click); // Button click event
+        private void BtnRestart_Click(object sender, EventArgs e)
+        {
+            score = 0;
+            pipeSpeed = 6;
+            gravity = 10;
+            pipeGap = 150;
 
-            // Add the button to the form's controls
-            this.Controls.Add(this.btnRestart);
-
-            this.ResumeLayout(false);
+            ResetPipes();
+            btnRestart.Visible = false;
+            scoreText.Text = "Score: " + score;
+            gameTimer.Start();
         }
 
         private void SetGameMode(string mode)
         {
-            // Adjust settings based on the selected game mode
             switch (mode)
             {
                 case "Normal":
@@ -70,168 +116,67 @@ namespace Flappy_Bird_Windows_Form
                     pipeGap = 90;
                     break;
             }
+            if (pipeGap < 80)
+            {
+                pipeGap = 80;
+            }
         }
-        private void CreatePipe()
+
+        private void ResetPipes()
         {
-            int pipeHeight = new Random().Next(100, this.ClientSize.Height - 100);  // Vị trí ngẫu nhiên cho ống
+            Random rand = new Random();
+            int pipeHeight = rand.Next(pipeGap, this.ClientSize.Height - pipeGap - ground.Height);
+
+            pipeBottom.Left = this.ClientSize.Width;
             pipeBottom.Top = pipeHeight;
-            pipeTop.Top = pipeHeight - pipeGap;
 
-            pipeBottom.Left = this.ClientSize.Width;  // Đặt ống vào phía bên phải
             pipeTop.Left = this.ClientSize.Width;
+            pipeTop.Top = pipeHeight - pipeGap;
         }
-        private void SetPipeDesign(string mode)
-        {
-            switch (mode)
-            {
-                case "Normal":
-                    pipeBottom.BackColor = Color.Green;
-                    pipeTop.BackColor = Color.Green;
-                    break;
-                case "Hard":
-                    pipeBottom.BackColor = Color.DarkGreen;
-                    pipeTop.BackColor = Color.DarkGreen;
-                    break;
-                case "Extreme":
-                    pipeBottom.BackColor = Color.Orange;
-                    pipeTop.BackColor = Color.Orange;
-                    // Thêm hiệu ứng phát sáng hoặc hoạt hình cho ống
-                    break;
-            }
-        }
-        private void UpdateScore()
-        {
-            score++;
-            scoreText.Text = "Score: " + score;
-        }
-        private void gamekeyisdown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Space)
-            {
-                gravity = -8;
-            }
-        }
-
-        private void gamekeyisup(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Space)
-            {
-                gravity = 10;
-            }
-        }
-
-
-
-
-
 
         private void gameTimerEvent(object sender, EventArgs e)
         {
-            flappyBird.Top += gravity;  // Move the bird up/down based on gravity
+            flappyBird.Top += gravity;  // Adjust bird's position based on gravity
             pipeBottom.Left -= pipeSpeed;  // Move pipes left
             pipeTop.Left -= pipeSpeed;     // Move top pipe left
 
-            // Create coin and check for collision
-
-            // Update score display
-            scoreText.Text = "Score: " + score;
-
-            // Reset pipes when they move off-screen
+            // Check if pipes are off-screen and reset
             if (pipeBottom.Left < -pipeBottom.Width)
             {
-                ResetPipes();  // Reposition pipes
-                score++;  // Increase score when passing pipes
-            }
-            if (pipeTop.Left < -pipeTop.Width)
-            {
-                ResetPipes();  // Reposition pipes
-                score++;  // Increase score when passing pipes
+                ResetPipes();
+                score++;
+                scoreText.Text = "Score: " + score; // Update score
             }
 
-            // End the game if the bird hits pipes or the ground
-            if (flappyBird.Bounds.IntersectsWith(pipeBottom.Bounds) ||
-                flappyBird.Bounds.IntersectsWith(pipeTop.Bounds) ||
+            // Collision detection
+            if (flappyBird.Bounds.IntersectsWith(pipeBottom.Bounds) ||                
                 flappyBird.Bounds.IntersectsWith(ground.Bounds))
             {
                 endGame();
             }
 
-            // Update game difficulty based on score milestones
-            UpdateDifficulty();
-        }
-
-        private void ResetPipes()
-        {
-            // Reset pipe positions randomly
-            pipeBottom.Left = this.ClientSize.Width;
-            pipeBottom.Top = new Random().Next(pipeGap, this.ClientSize.Height - ground.Height);
-
-            pipeTop.Left = this.ClientSize.Width;
-            pipeTop.Top = pipeBottom.Top - pipeGap;
-        }
-
-        private void UpdateDifficulty()
-        {
-            // Increase difficulty based on score milestones
-            if (score == 10)
+            // Check if bird flies out of bounds
+            if (flappyBird.Top < -25 || flappyBird.Bottom > ClientSize.Height)
             {
-                pipeSpeed += 2;  // Increase pipe speed
+                endGame();
             }
-            else if (score == 20)
-            {
-                pipeGap -= 20;  // Decrease pipe gap
-            }
-            else if (score == 30)
-            {
-                pipeTop.Top += new Random().Next(-10, 10);  // Slight variation in pipe height
-            }
-            else if (score == 50)
-            {
-                this.BackColor = Color.LightBlue;  // Change background color for added challenge
-            }
+            scoreText.Text = "Score: " + score; // Display updated score
         }
 
         private void endGame()
         {
             gameTimer.Stop();
             scoreText.Text += " Game Over!";
-            btnRestart.Visible = true; // Show the restart button
+            btnRestart.Visible = true;
 
-            // Ask the player if they want to return to the Main Menu
-            DialogResult result = MessageBox.Show("Do you want to return to the Main Menu?", "Game Over", MessageBoxButtons.YesNo);
+            MessageBox.Show($"Game over! Your final score is {score}", "Game Over", MessageBoxButtons.OK);
 
-            if (result == DialogResult.Yes)
+            if (MessageBox.Show("Return to Main Menu?", "Game Over", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                this.Close(); // Close the current game form
-                MainMenu mainMenu = new MainMenu(); // Create an instance of the MainMenu form
-                mainMenu.Show(); // Show the Main Menu
+                this.Close();
+                MainMenu mainMenu = new MainMenu();
+                mainMenu.Show();
             }
-            else
-            {
-                // Handle case if the player chooses "No" (e.g., exit or stay on the game over screen)
-                Application.Exit(); // Exit the application (optional)
-            }
-        }
-
-        private void btnRestart_Click(object sender, EventArgs e)
-        {
-            // Reset game variables
-            score = 0;
-            pipeSpeed = 6;
-            gravity = 10;
-            pipeGap = 150;
-
-            // Reset bird and pipes positions
-            flappyBird.Top = this.ClientSize.Height / 2;
-            pipeBottom.Left = this.ClientSize.Width;
-            pipeTop.Left = this.ClientSize.Width;
-            pipeBottom.Top = new Random().Next(pipeGap, this.ClientSize.Height - ground.Height);
-            pipeTop.Top = pipeBottom.Top - pipeGap;
-
-            // Hide restart button and start the game again
-            btnRestart.Visible = false;
-            scoreText.Text = "Score: " + score;
-            gameTimer.Start();
         }
     }
 }

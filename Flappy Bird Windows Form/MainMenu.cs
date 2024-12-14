@@ -12,10 +12,41 @@ namespace Flappy_Bird_Windows_Form
 {
     public partial class MainMenu : Form
     {
+        private ComboBox comboBoxEnvironment; // Declare comboBoxEnvironment
+        private Button button4; // Declare button4
+
         public MainMenu()
         {
             InitializeComponent();
 
+            // Initialize button4
+            button4 = new Button
+            {
+                Name = "button4",
+                Text = "Select Environment!!!",
+                Location = new Point(100, 200), // Adjust as needed
+                Size = new Size(150, 40)
+            };
+            this.Controls.Add(button4);
+
+            // Initialize comboBoxEnvironment
+            comboBoxEnvironment = new ComboBox
+            {
+                Name = "comboBoxEnvironment",
+                Location = new Point(100, 150), // Adjust as needed
+                Size = new Size(150, 30)
+            };
+            this.Controls.Add(comboBoxEnvironment);
+
+            comboBoxEnvironment.Items.Add("Day");
+            comboBoxEnvironment.Items.Add("Night");
+            comboBoxEnvironment.Items.Add("Space");
+            comboBoxEnvironment.SelectedIndex = 0; // Default to "Day"
+
+            // Attach event handler
+            comboBoxEnvironment.SelectedIndexChanged += ComboBoxEnvironment_SelectedIndexChanged;
+
+            // Other buttons
             button1.Text = "Normal";
             button2.Text = "Hard";
             button3.Text = "Extreme";
@@ -24,7 +55,7 @@ namespace Flappy_Bird_Windows_Form
             label1.Font = new Font("RetroFont", 24, FontStyle.Bold);
             label1.ForeColor = Color.Yellow;
             label1.BackColor = Color.Red;
-            label1.TextAlign = ContentAlignment.TopCenter;
+            label1.TextAlign = ContentAlignment.MiddleCenter;
 
             label2.Text = "Get Ready!";
             label2.Font = new Font("Arial", 24, FontStyle.Bold);
@@ -36,25 +67,19 @@ namespace Flappy_Bird_Windows_Form
             label3.ForeColor = Color.Blue;
             label3.TextAlign = ContentAlignment.MiddleCenter;
 
-            // Start blink effect for "Tap to Play"
+            // Blink effect for label3
             Timer blinkTimer = new Timer();
-            blinkTimer.Interval = 500; // 500ms for blink
-            blinkTimer.Tick += (s, e) =>
-            {
-                label3.Visible = !label3.Visible; // Toggle visibility
-            };
+            blinkTimer.Interval = 500; // 500ms
+            blinkTimer.Tick += (s, e) => { label3.Visible = !label3.Visible; };
             blinkTimer.Start();
+        }
 
-        }
-        private void pictureBox4_Click(object sender, EventArgs e)
+        private void ComboBoxEnvironment_SelectedIndexChanged(object sender, EventArgs e)
         {
-            MessageBox.Show("PictureBox4 clicked!");
+            string selectedEnvironment = comboBoxEnvironment.SelectedItem.ToString();
+            MessageBox.Show("Selected Environment: " + selectedEnvironment);
         }
-        private void MainMenu_Load(object sender, EventArgs e)
-        {
-            // Initialize any dynamic content or setup logic here.
-            MessageBox.Show("Main Menu Loaded!");
-        }
+
         private void button1_Click(object sender, EventArgs e)
         {
             StartGame("Normal");
@@ -72,9 +97,31 @@ namespace Flappy_Bird_Windows_Form
 
         private void StartGame(string mode)
         {
-            Form1 gameForm = new Form1(mode);
+            string environmentStyle = comboBoxEnvironment.SelectedItem?.ToString();
+
+            if (string.IsNullOrEmpty(environmentStyle))
+            {
+                MessageBox.Show("Please select an environment!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            Form1 gameForm = new Form1(mode, environmentStyle);
             gameForm.Show();
             this.Hide();
+        }
+        private void pictureBox4_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("PictureBox4 was clicked!");
+            // Add your custom logic here if needed.
+        }
+        private void MainMenu_Load(object sender, EventArgs e)
+        {
+            MessageBox.Show("Main Menu Loaded!");
+        }
+
+        private void pictureBox2_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
