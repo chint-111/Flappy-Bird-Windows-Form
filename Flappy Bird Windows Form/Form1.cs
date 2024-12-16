@@ -169,13 +169,16 @@ namespace Flappy_Bird_Windows_Form
             scoreText.Text += " Game Over!";
             btnRestart.Visible = true;
 
-            MessageBox.Show($"Game over! Your final score is {score}", "Game Over", MessageBoxButtons.OK);
+            DialogResult result = MessageBox.Show($"Game over! Your final score is {score}\nDo you want to return to Main Menu?",
+                                          "Game Over",
+                                          MessageBoxButtons.YesNo);
 
-            if (MessageBox.Show("Return to Main Menu?", "Game Over", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            // If the player selects "Yes," return to the main menu
+            if (result == DialogResult.Yes)
             {
-                this.Close();
-                MainMenu mainMenu = new MainMenu();
-                mainMenu.Show();
+                this.Close(); // Close the current game form
+                MainMenu mainMenu = new MainMenu(); // Create a new instance of the MainMenu form
+                mainMenu.Show(); // Show the MainMenu form
             }
         }
     }
